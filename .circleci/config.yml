@@ -11,7 +11,7 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            exit 1
+            exit 0
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -45,8 +45,8 @@ jobs:
           command: |
             # Change directory to frontend
             cd frontend
-      - run: npm install
-      - run: npm run build
+            npm install
+            npm run build
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -63,7 +63,7 @@ jobs:
           command: |
              # Your code here
              cd backend
-      - run: npm run build
+             npm run build
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
