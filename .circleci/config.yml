@@ -62,8 +62,9 @@ jobs:
           name: Back-end build
           command: |
              # Your code here
+             cd backend
              npm run build
-            #  cd backend
+            
              
             
              
