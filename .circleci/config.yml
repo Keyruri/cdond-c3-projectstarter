@@ -105,10 +105,10 @@ jobs:
                 ]
               }
             event: fail
-            # mentions: "@UdaPeopleDevTeam"
+            # mentions: "@03-cloud-devops-eng"
         - slack/notify:
             event: pass
-            # mentions: "@UdaPeopleDevTeam"
+            # mentions: "@03-cloud-devops-eng"
             custom: |
               {
                 "text": "CircleCI job Notification.",
@@ -327,7 +327,7 @@ jobs:
           keys: [backend-build]
       - run:
           name: Configure server
-          command: |   
+          command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - persist_to_workspace:
@@ -400,23 +400,37 @@ jobs:
       - destroy-environment
       - revert-migrations       
                     
-#   deploy-backend:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Deploy backend
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
-
+  deploy-backend:
+    docker:
+      - image: python:3.10-alpine3.16
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["2d:c9:3d:32:06:af:91:f4:39:41:7a:27:24:b1:fa:0e"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update --no-cache tar gzip nodejs npm tree aws-cli ansible    
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz . 
+            tree -afC /root/project/.circleci -I *node_modules*
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is ------- $(tail -1 inventory.txt)"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml \
+            --ssh-common-args='-o StrictHostKeyChecking=no'
+      - destroy-environment
+      - revert-migrations 
 #   smoke-test:
 #     docker:
 #       # Lightweight Docker image 
@@ -502,8 +516,8 @@ workflows:
           requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       # - cloudfront-update:
