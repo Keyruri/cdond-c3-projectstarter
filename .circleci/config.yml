@@ -504,7 +504,8 @@ jobs:
       - revert-migrations   
 
   cleanup:
-    executor: aws
+    docker:
+      - image: amazon/aws-cli
     steps:
       - checkout
       - run:
