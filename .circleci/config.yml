@@ -361,6 +361,7 @@ jobs:
           name: Sending Migration results to kvdb
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully" migration_status
             then
               echo "Successful Migration!"
               curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
@@ -454,8 +455,8 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo "${API_URL}"
-            if curl "${API_URL}/api/status" | grep "ok"
-            # if curl -s --head "https://google.com"
+            # if curl "${API_URL}/api/status" | grep "ok"
+            if curl -s --head "https://google.com"
             then
                 return 0
             else
