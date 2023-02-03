@@ -6,7 +6,7 @@ orbs:
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    parameters:
+    # parameters:
       # Add parameter here   
     steps:
       - run:
@@ -19,16 +19,16 @@ commands:
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
-    parameters:
+    # parameters:
       # Add parameter here     
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure https://kvdb.io/DRvMSHz4rDfi9owyeY2Fzb/migration_${CIRCLE_WORKFLOW_ID:0:7})
-            # echo $SUCCESS
-            if(( $SUCCESS == 1 )); 
+            SUCCESS=$(curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            echo $SUCCESS
+            if(( $SUCCESS == 2 )); 
             then
               cd ~/project/backend
               npm install
@@ -363,7 +363,7 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
               echo "Successful Migration!"
-              curl --insecure https://kvdb.io/DRvMSHz4rDfi9owyeY2Fzb/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+              curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             else
               echo "Failed Migration!"
             fi      
@@ -452,10 +452,10 @@ jobs:
               --filters "Name=tag:project,Values=udapeople" \
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
-            # echo "API_URL = ${API_URL}"
+            echo "API_URL = ${API_URL}"
             echo "${API_URL}"
-            # if curl "${API_URL}/api/status" | grep "ok"
-            if curl -s --head "https://google.com"
+            if curl "${API_URL}/api/status" | grep "ok"
+            # if curl -s --head "https://google.com"
             then
                 return 0
             else
@@ -504,32 +504,51 @@ jobs:
       - revert-migrations   
 
   cleanup:
-    docker:
-      - image: amazon/aws-cli
+    executor: aws
     steps:
       - checkout
-      - run: yum install -y tar gzip
-
       - run:
-          name: Get old stack workflow id
+          name: Clean up old environment
           command: |
-            export OldWorkflowID=$(aws cloudformation \
-            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-            --no-paginate --output text)
+            OldWorkflowID=$(curl -H "token: 1513db3b-15be-4750-bae6-3a8d32dd6de2" --request GET https://api.memstash.io/values/WorkflowID)
             CurrentWorkflowID=${CIRCLE_WORKFLOW_ID:0:7}
-                     
-      - run:
-          name: Remove old stacks and files
-          command: |
             if [[ "$CurrentWorkflowID" != "$OldWorkflowID" ]]
             then
-              echo "Delete old version"
+              echo "$OldWorkflowID!=$CurrentWorkflowID => will delete old version"
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
             else
-              echo "latest version running"
+              echo "$OldWorkflowID==$CurrentWorkflowID => nothing needs to be done..."
             fi
+
+  # cleanup:
+  #   docker:
+  #     - image: amazon/aws-cli
+  #   steps:
+  #     - checkout
+  #     - run: yum install -y tar gzip
+
+  #     - run:
+  #         name: Get old stack workflow id
+  #         command: |
+  #           export OldWorkflowID=$(aws cloudformation \
+  #           list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+  #           --no-paginate --output text)
+  #           CurrentWorkflowID=${CIRCLE_WORKFLOW_ID:0:7}
+                     
+  #     - run:
+  #         name: Remove old stacks and files
+  #         command: |
+  #           if [[ "$CurrentWorkflowID" != "$OldWorkflowID" ]]
+  #           then
+  #             echo "Delete old version"
+  #             aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+  #             aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+  #             aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+  #           else
+  #             echo "latest version running"
+  #           fi
 
 workflows:
   default:
