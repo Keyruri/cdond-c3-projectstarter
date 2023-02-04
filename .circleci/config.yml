@@ -36,143 +36,74 @@ commands:
             fi
             
 jobs:
-  send-notification:
-      description: Send custom notification to slack when a job fails and succeeds.   
-      docker:
-        - image: 'cimg/base:stable'
-      steps:
-        - slack/notify:
-            custom: |
-              {
-                "text": "CircleCI job Notification.",
-                "blocks": [
-                  {
-                    "type": "header",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "Job Failed. :red_circle:",
-                      "emoji": true
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Job*: ${CIRCLE_JOB}"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Project*: $CIRCLE_PROJECT_REPONAME"
-                      },
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Branch*: $CIRCLE_BRANCH"
-                      }
-                    ],
-                    "accessory": {
-                      "type": "image",
-                      "image_url": "https://cdn.freebiesupply.com/logos/large/2x/udacity-logo-png-transparent.png",
-                      "alt_text": "Udacity logo"
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Mentions*: $SLACK_PARAM_MENTIONS"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "actions",
-                    "elements": [
-                      {
-                        "type": "button",
-                        "text": {
-                          "type": "plain_text",
-                          "text": "View Job"
-                        },
-                        "url": "${CIRCLE_BUILD_URL}"
-                      }
-                    ]
-                  }
-                ]
-              }
-            event: fail
+  
             # mentions: "@03-cloud-devops-eng"
-        - slack/notify:
-            event: pass
+        # - slack/notify:
+        #     event: pass
             # mentions: "@03-cloud-devops-eng"
-            custom: |
-              {
-                "text": "CircleCI job Notification.",
-                "blocks": [
-                  {
-                    "type": "header",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "Job Succeeded. :white_check_mark:",
-                      "emoji": true
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Job*: ${CIRCLE_JOB}"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Project*: $CIRCLE_PROJECT_REPONAME"
-                      },
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Branch*: $CIRCLE_BRANCH"
-                      }
-                    ],
-                    "accessory": {
-                      "type": "image",
-                      "image_url": "https://cdn.freebiesupply.com/logos/large/2x/udacity-logo-png-transparent.png",
-                      "alt_text": "Udacity logo"
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Mentions*: $SLACK_PARAM_MENTIONS"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "actions",
-                    "elements": [
-                      {
-                        "type": "button",
-                        "text": {
-                          "type": "plain_text",
-                          "text": "View Job"
-                        },
-                        "url": "${CIRCLE_BUILD_URL}"
-                      }
-                    ]
-                  }
-                ]
-              }
+            # custom: |
+            #   {
+            #     "text": "CircleCI job Notification.",
+            #     "blocks": [
+            #       {
+            #         "type": "header",
+            #         "text": {
+            #           "type": "plain_text",
+            #           "text": "Job Succeeded. :white_check_mark:",
+            #           "emoji": true
+            #         }
+            #       },
+            #       {
+            #         "type": "section",
+            #         "fields": [
+            #           {
+            #             "type": "mrkdwn",
+            #             "text": "*Job*: ${CIRCLE_JOB}"
+            #           }
+            #         ]
+            #       },
+            #       {
+            #         "type": "section",
+            #         "fields": [
+            #           {
+            #             "type": "mrkdwn",
+            #             "text": "*Project*: $CIRCLE_PROJECT_REPONAME"
+            #           },
+            #           {
+            #             "type": "mrkdwn",
+            #             "text": "*Branch*: $CIRCLE_BRANCH"
+            #           }
+            #         ],
+            #         "accessory": {
+            #           "type": "image",
+            #           "image_url": "https://cdn.freebiesupply.com/logos/large/2x/udacity-logo-png-transparent.png",
+            #           "alt_text": "Udacity logo"
+            #         }
+            #       },
+            #       {
+            #         "type": "section",
+            #         "fields": [
+            #           {
+            #             "type": "mrkdwn",
+            #             "text": "*Mentions*: $SLACK_PARAM_MENTIONS"
+            #           }
+            #         ]
+            #       },
+            #       {
+            #         "type": "actions",
+            #         "elements": [
+            #           {
+            #             "type": "button",
+            #             "text": {
+            #               "type": "plain_text",
+            #               "text": "View Job"
+            #             },
+            #             "url": "${CIRCLE_BUILD_URL}"
+            #           }
+            #         ]
+            #       }
+            #     ]
+            #   }
 
   build-frontend:
     docker:
@@ -187,9 +118,14 @@ jobs:
             cd frontend
             npm install
             npm run build
+            exit 1
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
+
+      - slack-notification:
+            event: fail
+            template: basic_fail_1
 
   build-backend:
     docker:
