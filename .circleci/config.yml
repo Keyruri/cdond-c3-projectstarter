@@ -354,20 +354,22 @@ jobs:
             cd backend
             npm install
             npm run build
-            npm run migrations > migrations_dump.txt
+            npm run migrations > migrations_dump
+            # npm run migrations > migration_status
             ls -al
             cat migrations_dump.txt
       - run:
           name: Sending Migration results to kvdb
           command: |
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
-            # if grep -q "has been executed successfully" migration_status
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump
             then
               echo "Successful Migration!"
               curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             else
               echo "Failed Migration!"
-            fi      
+            fi     
+      - destroy-environment
+      - revert-migrations  
 
   deploy-frontend:
     docker:
