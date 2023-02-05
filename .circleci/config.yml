@@ -27,7 +27,7 @@ commands:
           when: on_fail
           command: |
             
-            SUCCESS=$(curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            SUCCESS=$(curl --insecure https://kvdb.io/K6h8LRnx4zoUpepL2DQxaJ/migration_${CIRCLE_WORKFLOW_ID:0:7})
             echo $SUCCESS
             if(( $SUCCESS == 1 )); 
             then
@@ -236,7 +236,7 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations.txt
             then
               echo "Successful Migration!"
-              curl --insecure https://kvdb.io/AiipXRF5BA7HwPDWrvjqDk/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
+              curl --insecure https://kvdb.io/K6h8LRnx4zoUpepL2DQxaJ/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             else
               echo "Failed Migration!"
             fi     
@@ -254,6 +254,8 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip nodejs npm ansible curl aws-cli
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Get backend url
           command: |
@@ -265,8 +267,6 @@ jobs:
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
             cat frontend/.env
-      - restore_cache:
-          keys: [frontend-build]
       - run:
           name: Deploy frontend objects
           command: |
@@ -301,7 +301,7 @@ jobs:
             npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz . 
-            tree -afC /root/project/.circleci -I *node_modules*
+            # tree -afC /root/project/.circleci -I *node_modules*
             mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
             mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
             cd .circleci/ansible
