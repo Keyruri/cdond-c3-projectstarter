@@ -385,7 +385,6 @@ jobs:
       - destroy-environment
       - revert-migrations   
 
-  
 
   cleanup:
     docker:
@@ -428,8 +427,8 @@ jobs:
               cd .circleci/ansible
               cat inventory.txt
               ansible-playbook -i inventory.txt node-exporter.yml
-        - destroy-environment:
-        - revert-migrations:
+        - destroy-environment
+        - revert-migrations
             
 
 workflows:
