@@ -1,2 +1,2 @@
 URL01: https://github.com/Keyruri/cdond-c3-projectstarter
-URL02: http://udapeople-1245729.s3-website-us-east-1.amazonaws.com/#/employees
+URL02: http://udapeople-fa3a7fc.s3-website-us-east-1.amazonaws.com/#/employees
