@@ -1,2 +1,0 @@
-username: postgres
-password: 12978673!Mmmmkk
